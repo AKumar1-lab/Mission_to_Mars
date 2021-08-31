@@ -1,6 +1,6 @@
 # Import Splinter and BeautifulSoup
 # Import Splinter, BeautifulSoup, and Pandas
-from splinter import Browser
+from splinter import Browser, browser
 from bs4 import BeautifulSoup as soup
 import pandas as pd
 import datetime as dt
@@ -20,6 +20,7 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
+        "hemispheres": hemispheres(browser),
         "last_modified": dt.datetime.now()
     }
 
@@ -101,8 +102,59 @@ def mars_facts():
     # Convert dataframe into HTML format, add bootstrap
     return df.to_html(classes="table table-striped")
 
-if __name__ == "__main__":
+    ### Challenge
+    #### Hemispheres 
+def hemispheres(browser):
+    
+# 1. Use browser to visit the URL 
+    url = 'https://marshemispheres.com/'
+    browser.visit(url)
+
+# 2. Create a list to hold the images and titles.
+    hemisphere_image_urls = []
+
+# 3. Write code to retrieve the image urls and titles for each hemisphere.
+# Get list of all hemispheres
+    links = browser.find_by_css("a.product-item h3")
+    
+# Loop through the links of hemisphere images
+    for x in range (len(links)-1):
+        #hemisphere = {}
+# find sample image
+    #sample_element = browser.find_link_by_text ("Sample").first 
+    #hemisphere["img_url"] = sample_element["href"]
+
+# Get hemisphere title
+#hemisphere["title"] = browser.find_by_css("h2.title").text
+        browser.find_by_css("a.product-item h3")[x].click()
+        hemisphere_data = scrape_hemisphere(browser.html)
+        hemisphere_image_urls.append(hemisphere_data)
+        # finally we go back to the browser
+        browser.back()
+    
+# 4. Print the list that holds the dictionary of each image url and title.
+        
+    return hemisphere_image_urls
+
+def scrape_hemisphere(html_text):
+    hemi_soup = soup(html_text, "html.parser")
+    url = 'https://marshemispheres.com/'
+    try:
+        title_element = hemi_soup.find("h2", class_="title").get_text()
+        sample_element = hemi_soup.find("a", text="Sample").get("href")
+    except AttributeError:
+        title_element = None
+        sample_element = None
+    hemispheres_dictionary = {
+        "title": title_element,
+        "img_url": url + sample_element
+    }
+    return hemispheres_dictionary
+
+    if __name__ == "__main__":
 
     # If running as script, print scraped data
-    print(scrape_all())
+        print(scrape_all())
+
+    browser.quit()
 
